@@ -790,3 +790,40 @@ sidebar-main {
 #sidebar-button:hover > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
   background-color: var(--fx-tab-hover) !important;
 }
+
+/* ---------- Toast (zen-copy-url.uc.js) ---------- */
+
+/* Zen's toast (zen-popup.css): a pill in the window's top-right corner,
+   a gradient of Zen's primary color (near-black with this dark theme) */
+#zen-toast-container {
+  --fx-toast-color: #000;
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+
+.zen-toast {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  /* Zen's 42px / 14px pill, measured at Zen's ~1.2x UI size */
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
+  padding: 6px;
+  border-radius: 16px;
+  background: linear-gradient(to bottom, var(--fx-toast-color) -40%, color-mix(in srgb, var(--fx-toast-color), #0f0f0f 20%));
+  box-shadow: rgba(0, 0, 0, 0.4) 0 0 22px 2px;
+  color: #fff;
+  font-size: 16.8px;
+  font-weight: 600;
+  transform-origin: top center;
+
+  > span {
+    margin: 0 7px;
+  }
+}
