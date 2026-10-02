@@ -1,0 +1,766 @@
+/*
+ * Zen-style Firefox UI
+ *
+ * Built on Firefox's native vertical tabs (sidebar.revamp + sidebar.verticalTabs,
+ * see user.js). The nav bar is lifted out of the top toolbox and pinned over the
+ * top of the sidebar, the page sits in a rounded card, pinned tabs become tiles,
+ * and the URL bar turns into a centered command palette while focused.
+ *
+ * Sizes and colors are measured from Zen Browser's dark theme. Tweak the
+ * variables below to change the look.
+ */
+
+:root {
+  --fx-sidebar-width: 224px;
+  --fx-nav-height: 98px;        /* buttons row + url bar row */
+  --fx-card-gap: 9px;           /* space around the page card */
+  --fx-card-radius: 10px;
+  --fx-radius: 10px;
+
+  --fx-bg: #0e0e10;             /* window / sidebar */
+  --fx-urlbar: #2c2c2e;
+  --fx-tile: #272728;
+  --fx-tile-selected: #353537;
+  --fx-tab-selected: #2e2e2f;
+  --fx-tab-hover: #232325;
+  --fx-divider: #222224;
+  --fx-pill: #424243;           /* zoom badge */
+
+  --fx-text: #cfcfcf;
+  --fx-text-url: #c0c0c1;
+  --fx-text-dim: #818182;
+  --fx-icon: #b7b7b8;
+  --fx-icon-dim: #959596;
+
+  --fx-palette-bg: #101010;
+  --fx-palette-border: #282828;
+  --fx-palette-divider: #262626;
+  --fx-palette-text: #c5c5c5;
+  --fx-palette-dim: #919191;
+  --fx-palette-row-hover: #1c1c1d;
+}
+
+/* ---------- Window background ---------- */
+
+#navigator-toolbox,
+#browser,
+#sidebar-container,
+sidebar-main,
+#tabbrowser-tabbox {
+  background: var(--fx-bg) !important;
+  color: var(--fx-text) !important;
+}
+
+/* ---------- Nav bar, moved over the top of the sidebar ---------- */
+
+#navigator-toolbox {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: var(--fx-sidebar-width) !important;
+  z-index: 10 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Horizontal tab strip and bookmarks bar have no place in this layout */
+#TabsToolbar,
+#PersonalToolbar {
+  display: none !important;
+}
+
+#nav-bar {
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  height: var(--fx-nav-height);
+  padding: 8px 3px 0 !important;
+  box-sizing: border-box;
+  align-items: start !important;
+}
+
+#nav-bar-customization-target {
+  align-items: start;
+}
+
+/* Springs, window buttons and the rest: the window manager handles windows,
+   downloads/extensions move to the sidebar's bottom corners */
+#nav-bar :is(toolbarspring, #vertical-spacer, .titlebar-spacer, .titlebar-buttonbox-container, #new-tab-button) {
+  display: none !important;
+}
+
+/* Row 1:  ···  [sidebar]            ←  →  ⟳ */
+#PanelUI-button {
+  order: -1;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+#sidebar-button {
+  order: -1;
+}
+
+#back-button {
+  margin-inline-start: auto !important;
+}
+
+#nav-bar :is(.toolbarbutton-1, #PanelUI-menu-button) {
+  --toolbarbutton-inner-padding: 8px;
+  --toolbarbutton-outer-padding: 2px;
+  --toolbarbutton-hover-background: var(--fx-tab-hover);
+  --toolbarbutton-active-background: var(--fx-tab-selected);
+  --toolbarbutton-border-radius: 8px;
+  fill: var(--fx-icon) !important;
+  color: var(--fx-icon) !important;
+}
+
+/* "···" with Zen's bolder dots (color baked in, see #sidebar-button) */
+#PanelUI-menu-button {
+  list-style-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23b7b7b8'%3E%3Ccircle cx='4.4' cy='8' r='1.1'/%3E%3Ccircle cx='9.2' cy='8' r='1.1'/%3E%3Ccircle cx='14' cy='8' r='1.1'/%3E%3C/svg%3E") !important;
+}
+
+/* Zen draws these two a bit larger than Firefox's 16px icons */
+/* (both are badged buttons: the icon sits in a padded badge stack) */
+:is(#PanelUI-menu-button, #sidebar-button) {
+  > .toolbarbutton-badge-stack {
+    padding: 6px !important;
+  }
+
+  .toolbarbutton-icon {
+    width: 20px !important;
+    height: 20px !important;
+    padding: 0 !important;
+  }
+}
+
+#sidebar-button {
+  margin-inline-start: -7px !important;
+}
+
+/* Bottom corners of the sidebar: downloads (left), "+" menu (right, added by
+   zen-plus-menu.uc.js) */
+#downloads-button,
+#zen-plus-button {
+  position: fixed !important;
+  bottom: 7px;
+  z-index: 11;
+  fill: var(--fx-icon-dim) !important;
+}
+
+#downloads-button {
+  left: 4px;
+}
+
+#zen-plus-button {
+  left: calc(var(--fx-sidebar-width) - 39px);
+  appearance: none !important;
+  padding: 0 !important;
+
+  > .toolbarbutton-icon {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 8px !important;
+    border-radius: 8px;
+  }
+
+  &:hover > .toolbarbutton-icon,
+  &[open] > .toolbarbutton-icon {
+    background: var(--fx-tab-hover);
+  }
+
+  > .toolbarbutton-menu-dropmarker {
+    display: none !important;
+  }
+}
+
+#zen-plus-popup {
+  /* !important: Firefox's popup.css is author-level and beats userChrome */
+  --panel-background-color: var(--fx-bg) !important;
+  --panel-border-color: var(--fx-divider) !important;
+  --panel-text-color: var(--fx-text) !important;
+  --panel-border-radius: 10px !important;
+  --panel-padding: 5px !important;
+
+  menuitem {
+    min-height: 34px;
+    padding: 0 12px 0 10px !important;
+    border-radius: 6px;
+    font-size: 14px;
+    fill: var(--fx-icon);
+    -moz-context-properties: fill;
+
+    &:is([_moz-menuactive], :hover):not([disabled]) {
+      background: var(--fx-tab-selected) !important;
+    }
+
+    > .menu-icon {
+      margin-inline-end: 10px !important;
+    }
+  }
+}
+
+/* Copy URL (zen-copy-url.uc.js) and extensions: tucked into the right end of
+   the url bar, shown while hovering it */
+:is(#zen-copy-url-button, #unified-extensions-button) {
+  position: fixed !important;
+  top: 54px;
+  z-index: 12;
+  padding: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms;
+
+  > .toolbarbutton-icon {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 8px !important;
+  }
+}
+
+#unified-extensions-button {
+  left: calc(var(--fx-sidebar-width) - 5px - 4px - 32px);
+}
+
+#zen-copy-url-button {
+  left: calc(var(--fx-sidebar-width) - 5px - 4px - 64px);
+}
+
+#nav-bar:has(#urlbar-container:hover):not(:has(#urlbar:is([focused], [popover-open]))) :is(#zen-copy-url-button, #unified-extensions-button),
+#nav-bar:has(#zen-copy-url-button:hover, #unified-extensions-button:is(:hover, [open])) :is(#zen-copy-url-button, #unified-extensions-button) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Make room for them so the zoom badge slides left instead of being covered */
+#nav-bar:has(#urlbar-container:hover, #zen-copy-url-button:hover, #unified-extensions-button:is(:hover, [open])) #urlbar:not([focused], [popover-open]) > .urlbar-input-container {
+  padding-inline-end: 72px !important;
+}
+
+/* ---------- URL bar (in the sidebar) ---------- */
+
+#urlbar-container {
+  position: absolute !important;
+  inset-inline: 5px;
+  bottom: 6px;
+  height: 44px;
+  width: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  /* Stays behind as an empty slot while the palette floats */
+  background: color-mix(in srgb, var(--fx-urlbar) 55%, transparent);
+  border-radius: var(--fx-radius);
+}
+
+#urlbar {
+  --urlbar-height: 44px;
+  --urlbar-background-color: var(--fx-urlbar);
+  --urlbar-background-border: none;
+  --toolbar-field-text-color: var(--fx-text-url);
+  font-size: 18.3px !important;
+  font-weight: 500;
+}
+
+#urlbar:not([focused], [popover-open]) {
+  > .urlbar-background {
+    background: var(--fx-urlbar) !important;
+    border: none !important;
+    border-radius: var(--fx-radius) !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  > .urlbar-input-container {
+    padding-inline: 7px 8px !important;
+  }
+
+  /* Just the address and the zoom badge, like Zen */
+  :is(#identity-box, #trust-icon-container, #tracking-protection-icon-container,
+      .searchmode-switcher, #remote-control-box, #notification-popup-box,
+      #page-action-buttons > :not(#urlbar-zoom-button)) {
+    display: none !important;
+  }
+}
+
+#urlbar-zoom-button {
+  background: var(--fx-pill) !important;
+  color: #fff !important;
+  font-size: 12.5px !important;
+  font-weight: 500;
+  border-radius: 6px !important;
+  padding: 3px 8px !important;
+  margin-block: 0 !important;
+  opacity: 1 !important;
+
+  &:hover {
+    background: color-mix(in srgb, var(--fx-pill) 80%, white) !important;
+  }
+}
+
+/* ---------- URL bar as a floating command palette ---------- */
+
+/* Like Zen: clicking the url bar (or Ctrl+L) expands it in place over the
+   top of the sidebar; Ctrl+T / New Tab (zen-newtab.uc.js sets
+   [zen-palette-centered]) opens it in the middle of the window. */
+#urlbar:is([focused], [popover-open]):not([zen-palette-centered]) {
+  top: 44px !important;
+  left: 5px !important;
+  width: min(700px, calc(100vw - 10px)) !important;
+  --fx-palette-input-height: 60px;
+}
+
+#urlbar[zen-palette-centered]:is([focused], [popover-open]) {
+  top: 31vh !important;
+  /* centered with margins, not translate: the results popup is
+     anchor-positioned and anchors ignore transforms */
+  inset-inline: 0 !important;
+  margin-inline: auto !important;
+  width: 57vw !important;
+  --fx-palette-input-height: 72px;
+}
+
+#urlbar:is([focused], [popover-open]) {
+  position: fixed !important;
+  z-index: 100;
+
+  --urlbar-height: var(--fx-palette-input-height);
+  --urlbar-background-color-focus: var(--fx-palette-bg);
+  --urlbar-background-border-open: 1px solid var(--fx-palette-border);
+  --urlbar-background-border-focused: 1px solid var(--fx-palette-border);
+  --urlbar-background-outline-focused: none;
+  --urlbar-background-overhang-open: 0px;
+  /* These are computed from the overhang on :root, so they need resetting
+     here too, or the results half sticks out past the input half */
+  --urlbarView-margin-inline: 0px;
+  --urlbarView-margin-block: 0px;
+  --urlbarView-joint-background-outset-inline: 0px;
+  --urlbarView-joint-background-outset-block: 0px;
+  --urlbar-background-box-shadow-open: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --urlbarview-border-radius: 12px;
+  --toolbar-field-focus-background-color: var(--fx-palette-bg);
+  --toolbar-field-text-color: var(--fx-palette-text);
+  --toolbar-field-focus-text-color: var(--fx-palette-text);
+  font-size: 17px !important;
+
+  > .urlbar-background {
+    background: var(--fx-palette-bg) !important;
+    border: 1px solid var(--fx-palette-border) !important;
+    outline: none !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55) !important;
+  }
+
+  > .urlbar-input-container {
+    min-height: var(--fx-palette-input-height);
+    padding-inline: 27px 20px !important;
+    outline: none !important;
+
+    /* Magnifier instead of the search engine switcher */
+    &::before {
+      content: "";
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      margin-inline-end: 22px;
+      background: url("chrome://global/skin/icons/search-glass.svg") no-repeat center / 16px;
+      -moz-context-properties: fill;
+      fill: var(--fx-palette-dim);
+    }
+  }
+
+  :is(.searchmode-switcher, #identity-box, #trust-icon-container,
+      #tracking-protection-icon-container, #remote-control-box,
+      #page-action-buttons > :not(#urlbar-zoom-button), .urlbar-go-button) {
+    display: none !important;
+  }
+
+  #urlbar-zoom-button {
+    background: #363636 !important;
+  }
+
+  /* "Search..." placeholder */
+  .urlbar-input-box {
+    position: relative;
+
+    &:has(> #urlbar-input:placeholder-shown)::after {
+      content: "Search...";
+      position: absolute;
+      inset-inline-start: 0;
+      top: 50%;
+      translate: 0 -50%;
+      color: var(--fx-palette-dim);
+      pointer-events: none;
+    }
+  }
+
+  #urlbar-input::placeholder {
+    color: transparent !important;
+  }
+}
+
+/* Results */
+#urlbar {
+  .urlbarView {
+    --urlbarview-row-min-height: 56px;
+    --urlbarView-row-gutter: 3px;
+    --urlbarview-favicon-size: 16px;
+    --urlbarView-separator-char: "—";
+  }
+
+  .urlbarView-background {
+    background: var(--fx-palette-bg) !important;
+    border: 1px solid var(--fx-palette-border) !important;
+    border-top: none !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55) !important;
+  }
+
+  .urlbarView {
+    border-top: 1px solid var(--fx-palette-divider);
+  }
+
+  .urlbarView-body-outer {
+    padding-bottom: 6px;
+  }
+
+  .urlbarView-row {
+    font-size: 17px;
+    padding-inline: 10px !important;
+    color: var(--fx-palette-text) !important;
+
+    background: transparent !important;
+
+    /* "Firefox Suggest" etc. headers */
+    &[label] {
+      margin-block-start: 0 !important;
+
+      &::before {
+        display: none !important;
+      }
+    }
+
+    &:hover > .urlbarView-row-inner {
+      background: var(--fx-palette-row-hover) !important;
+    }
+
+    &[selected] > .urlbarView-row-inner {
+      background: #222224 !important;
+      color: var(--fx-palette-text) !important;
+    }
+  }
+
+  .urlbarView-row-inner {
+    min-height: 50px !important;
+    padding-inline: 18px !important;
+    border-radius: 10px !important;
+  }
+
+  .urlbarView-favicon {
+    margin-inline-end: 24px !important;
+  }
+
+  /* Always "Title — url" on one line */
+  .urlbarView-results[wrap] > .urlbarView-row > .urlbarView-row-inner > .urlbarView-row-body > .urlbarView-row-body-top {
+    display: flex !important;
+
+    > .urlbarView-row-body-top-no-wrap > .urlbarView-title-separator {
+      display: revert !important;
+    }
+  }
+
+  .urlbarView-row-body-top-no-wrap {
+    flex: 0 1 auto !important;
+  }
+
+  .urlbarView-url {
+    flex: 0 1 auto !important;
+    font-size: inherit !important;
+    color: var(--fx-palette-text) !important;
+  }
+
+  .urlbarView-title-separator::before {
+    opacity: 1 !important;
+  }
+}
+
+/* ---------- Sidebar ---------- */
+
+#sidebar-container {
+  width: var(--fx-sidebar-width) !important;
+  min-width: var(--fx-sidebar-width) !important;
+  max-width: var(--fx-sidebar-width) !important;
+  padding-top: var(--fx-nav-height) !important;
+  border: none !important;
+}
+
+sidebar-main {
+  --sidebar-expanded-launcher-width: var(--fx-sidebar-width) !important;
+}
+
+#sidebar-launcher-splitter,
+#vertical-pinned-tabs-splitter {
+  display: none !important;
+}
+
+/* Firefox's own sidebar tools (history, bookmarks, ...) sit below the tab
+   list inside a shadow root userChrome.css can't reach. Make the tab list
+   fill the whole sidebar so they're pushed out of view, and leave room at the
+   bottom for the downloads / "+" buttons. */
+#vertical-tabs[visible] {
+  min-height: calc(100vh - var(--fx-nav-height)) !important;
+  padding-bottom: 44px !important;
+  box-sizing: border-box !important;
+}
+
+/* ---------- Page card ---------- */
+
+#tabbrowser-tabbox {
+  margin: var(--fx-card-gap) var(--fx-card-gap) var(--fx-card-gap) 1px !important;
+  border-radius: var(--fx-card-radius);
+  overflow: clip;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 2px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+#tabbrowser-tabpanels {
+  background: transparent !important;
+}
+
+#tabbrowser-tabpanels .browserContainer {
+  border: none !important;
+  border-radius: var(--fx-card-radius) !important;
+  overflow: clip;
+}
+
+/* Fullscreen: no chrome, no card */
+:root:is([inDOMFullscreen], [inFullscreen]) {
+  #tabbrowser-tabbox,
+  #tabbrowser-tabpanels .browserContainer {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ---------- Tabs ---------- */
+
+#tabbrowser-tabs[orient="vertical"] {
+  --tab-min-height: 43px !important;
+  --tab-margin-block: 2.5px !important;   /* 43px tabs, 48px apart */
+  --tab-border-radius: var(--fx-radius) !important;
+  --tab-inner-inline-margin: 7px !important;
+  --tab-icon-end-margin: 15px !important;
+  font-size: 17.2px !important;
+  font-weight: 500;
+
+  /* tab-content spans the full sidebar width, so this includes the 7px
+     between the sidebar edge and the tab background */
+  .tabbrowser-tab:not([pinned]) .tab-content {
+    padding-inline: 17px 10px !important;
+  }
+
+  .tabbrowser-tab:not([pinned]) {
+    padding-block: 0 !important;
+  }
+
+  .tab-background {
+    border-radius: var(--tab-border-radius) !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  .tabbrowser-tab:hover > .tab-stack > .tab-background:not([selected], [multiselected]) {
+    background: var(--fx-tab-hover) !important;
+  }
+
+  .tab-background:is([selected], [multiselected]) {
+    background: var(--fx-tab-selected) !important;
+  }
+
+  .tab-label {
+    color: var(--fx-text) !important;
+  }
+
+  /* Close button only while hovering the tab, like Zen */
+  .tabbrowser-tab:not(:hover) .tab-close-button {
+    display: none !important;
+  }
+
+  .tab-close-button {
+    width: 26px !important;
+    height: 26px !important;
+    padding: 6px !important;
+    margin-inline-end: 1px !important;
+    border-radius: 6px !important;
+    fill: var(--fx-icon) !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+}
+
+/* Pinned tabs -> tiles (Zen's "Essentials"), two per row.
+   ::part() rules from userChrome.css don't reach the grid inside this
+   arrowscrollbox, so size Firefox's own grid through the variables it reads
+   (custom properties do inherit into the shadow DOM). Gaps come from the
+   tile margins. */
+#tabbrowser-tabs[orient="vertical"][expanded] > #pinned-tabs-container {
+  --tab-height-with-margin-padding: 64px !important;
+  --tab-pinned-min-width-expanded: 100px !important;
+  --tab-pinned-container-margin-inline-expanded: 0.5px !important;
+  --tab-pinned-margin-inline-expanded: 0px !important;
+
+  .tabbrowser-tab {
+    height: 64px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .tab-stack {
+    height: 100%;
+  }
+
+  .tab-background {
+    margin: 4.5px !important;
+    border-radius: var(--fx-radius) !important;
+    background: var(--fx-tile) !important;
+  }
+
+  .tab-background[selected] {
+    background: var(--fx-tile-selected) !important;
+  }
+
+  .tab-content {
+    justify-content: center;
+    padding: 0 !important;
+  }
+
+  .tab-label-container {
+    display: none !important;
+  }
+}
+
+/* "Space" header + divider, then "New Tab" at the top of the tab list */
+#tabbrowser-arrowscrollbox-periphery > #tabs-newtab-button {
+  display: none !important;
+}
+
+#tabbrowser-tabs[orient="vertical"] {
+  > #tabbrowser-arrowscrollbox {
+    order: 2;
+  }
+
+  > #vertical-tabs-newtab-button {
+    display: flex !important;
+    order: 1;
+    min-height: 43px !important;
+    margin-inline: 7px !important;
+    padding-inline: 11px !important;
+    border-radius: var(--fx-radius) !important;
+    font-size: 17.2px !important;
+    color: var(--fx-text-dim) !important;
+    fill: var(--fx-text-dim) !important;
+
+    > .toolbarbutton-text {
+      color: var(--fx-text-dim) !important;
+      padding-inline-start: 13px !important;
+    }
+
+    &:hover {
+      background: var(--fx-tab-selected) !important;
+    }
+  }
+}
+
+#tabbrowser-tabs[orient="vertical"][expanded] > #vertical-tabs-newtab-button {
+  margin-top: 67px !important;
+  margin-bottom: -5px !important;
+  overflow: visible !important;
+
+  /* Firefox's own ::before here (a click-target extender) is more specific,
+     hence the !importants */
+  &::before {
+    content: "Space" !important;
+    position: absolute !important;
+    top: -72px !important;
+    inset-inline: 1px !important;
+    block-size: 56px !important;
+    padding-inline-start: 10px !important;
+    box-sizing: border-box !important;
+    line-height: 34px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: var(--fx-text-dim) !important;
+    border-bottom: 1px solid var(--fx-divider) !important;
+    pointer-events: none !important;
+  }
+}
+
+/* ---------- Compact mode (sidebar button, see zen-compact.uc.js) ---------- */
+
+:root[zen-compact] {
+  /* Off-screen except an invisible strip at the left edge that brings it back
+     on hover. `left`, not translate, so the floating url bar (position: fixed
+     inside the toolbox) stays relative to the window. */
+  #sidebar-container {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: calc(8px - var(--fx-sidebar-width)) !important;
+    z-index: 9 !important;
+    opacity: 0 !important;
+    transition: left 180ms ease, opacity 180ms ease !important;
+  }
+
+  #navigator-toolbox {
+    left: calc(-1 * var(--fx-sidebar-width)) !important;
+    transition: left 180ms ease !important;
+  }
+
+  /* These are position: fixed, so they don't move with the toolbox */
+  :is(#downloads-button, #zen-plus-button, #unified-extensions-button, #zen-copy-url-button) {
+    visibility: hidden !important;
+  }
+
+  #tabbrowser-tabbox {
+    margin-inline-start: var(--fx-card-gap) !important;
+  }
+}
+
+/* Shown while hovered, or while one of its menus is open */
+:root[zen-compact]:has(#sidebar-container:hover, #navigator-toolbox:hover,
+    #nav-bar [open], #zen-plus-button[open], #downloads-button[open]) {
+  #sidebar-container {
+    left: 0 !important;
+    opacity: 1 !important;
+    border-radius: 0 var(--fx-radius) var(--fx-radius) 0 !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  #navigator-toolbox {
+    left: 0 !important;
+  }
+
+  :is(#downloads-button, #zen-plus-button) {
+    visibility: visible !important;
+  }
+
+  :is(#unified-extensions-button, #zen-copy-url-button) {
+    visibility: visible !important;
+  }
+}
+
+/* Zen's outlined panel icon instead of Firefox's filled one (color baked in:
+   context-fill isn't honored for data: images) */
+#sidebar-button {
+  list-style-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23b7b7b8' stroke-width='1.2' stroke-linecap='round'%3E%3Crect x='1.6' y='2.6' width='12.8' height='10.8' rx='2.3'/%3E%3Cpath d='M7.1 2.6v10.8M3.7 5.2h1.4M3.7 7.2h1.4'/%3E%3C/svg%3E") !important;
+}
+
+#sidebar-button > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+  /* Firefox marks it [checked] while the sidebar is open */
+  background-color: transparent !important;
+}
+
+#sidebar-button:hover > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+  background-color: var(--fx-tab-hover) !important;
+}
