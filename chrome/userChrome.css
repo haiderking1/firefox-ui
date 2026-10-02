@@ -304,10 +304,11 @@ sidebar-main,
 
 /* ---------- URL bar as a floating command palette ---------- */
 
-/* Like Zen: clicking the url bar (or Ctrl+L) expands it in place over the
-   top of the sidebar; Ctrl+T / New Tab (zen-newtab.uc.js sets
-   [zen-palette-centered]) opens it in the middle of the window. */
-#urlbar:is([focused], [popover-open]):not([zen-palette-centered]) {
+/* Like Zen: clicking the url bar expands it in place over the top of the
+   sidebar (zen-newtab.uc.js sets [zen-palette-inplace] on that mousedown);
+   any other way of focusing it (Ctrl+T, Ctrl+L, Firefox restoring focus
+   when you switch tabs) floats it in the middle of the window. */
+#urlbar[zen-palette-inplace]:is([focused], [popover-open]) {
   top: 44px !important;
   left: 5px !important;
   width: min(700px, calc(100vw - 10px)) !important;
@@ -322,7 +323,7 @@ sidebar-main,
   opacity: 0 !important;
 }
 
-#urlbar[zen-palette-centered]:is([focused], [popover-open]) {
+#urlbar:is([focused], [popover-open]):not([zen-palette-inplace]) {
   top: 31vh !important;
   /* centered with margins, not translate: the results popup is
      anchor-positioned and anchors ignore transforms */
@@ -847,5 +848,49 @@ sidebar-main {
 
   > span {
     margin: 0 7px;
+  }
+}
+
+/* ---------- Menus and panels, in the sidebar's colors ---------- */
+/* (!important: Firefox's popup.css / menu.css are author-level and beat
+   userChrome) */
+
+:root {
+  /* Arrow panels: "···" app menu, extensions, downloads, ... */
+  --arrowpanel-background: var(--fx-bg) !important;
+  --arrowpanel-color: var(--fx-text) !important;
+  --arrowpanel-border-color: var(--fx-divider) !important;
+  --panel-separator-color: var(--fx-divider) !important;
+  --panel-item-hover-bgcolor: var(--fx-tab-hover) !important;
+  --panel-item-active-bgcolor: var(--fx-tab-selected) !important;
+}
+
+/* Arrow panels draw their background from these, not --arrowpanel-* */
+panel {
+  --panel-background-color: var(--fx-bg) !important;
+  --panel-border-color: var(--fx-divider) !important;
+  --panel-text-color: var(--fx-text) !important;
+}
+
+/* Right-click and dropdown menus */
+menupopup {
+  --panel-background-color: var(--fx-bg) !important;
+  --panel-border-color: var(--fx-divider) !important;
+  --panel-text-color: var(--fx-text) !important;
+  --panel-border-radius: 10px !important;
+  --panel-padding: 4px !important;
+  --menuitem-border-radius: 6px !important;
+
+  :is(menu, menuitem) {
+    min-height: 30px;
+  }
+
+  :is(menu, menuitem)[_moz-menuactive]:not([disabled]) {
+    background-color: var(--fx-tab-selected) !important;
+    color: var(--fx-text) !important;
+  }
+
+  menuseparator {
+    border-color: var(--fx-divider) !important;
   }
 }

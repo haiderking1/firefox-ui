@@ -25,8 +25,8 @@
 
   function openPalette() {
     pending = true;
-    // Centered palette instead of the in-place one (see userChrome.css)
-    gURLBar.setAttribute("zen-palette-centered", "");
+    // Centered palette, not the in-place one (see userChrome.css)
+    gURLBar.removeAttribute("zen-palette-inplace");
     // Firefox shows the input before the results, so keep it all hidden
     // until the first results are drawn (see the controller listener
     // below), or 300ms at most
@@ -50,7 +50,7 @@
   // Put the url bar back in the sidebar showing the page's address
   function close() {
     pending = false;
-    gURLBar.removeAttribute("zen-palette-centered");
+    gURLBar.removeAttribute("zen-palette-inplace");
     gURLBar.view.close();
     gURLBar.handleRevert();
     gBrowser.selectedBrowser.focus();
@@ -86,10 +86,25 @@
     return where;
   };
 
+  // Like Zen, the bar only expands in place when you click it; focused any
+  // other way it floats centered. Decided when it gets focus and kept until
+  // it loses it.
+  gURLBar.addEventListener(
+    "mousedown",
+    () => {
+      if (!gURLBar.focused) {
+        gURLBar.setAttribute("zen-palette-inplace", "");
+      }
+    },
+    true
+  );
+
   // focusout, not blur: focus is on the inner input and blur doesn't bubble
   gURLBar.addEventListener("focusout", () =>
     setTimeout(() => {
-      gURLBar.removeAttribute("zen-palette-centered");
+      if (!gURLBar.focused) {
+        gURLBar.removeAttribute("zen-palette-inplace");
+      }
       cancel();
     }, 0)
   );
