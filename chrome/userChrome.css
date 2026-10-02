@@ -853,8 +853,8 @@ panel {
   --panel-text-color: var(--fx-text) !important;
 }
 
-/* Sharp corners on the downloads popup and the "···" app menu, like Zen's */
-:is(#downloadsPanel, #appMenu-popup) {
+/* Sharp corners on the downloads, "···" and extensions popups, like Zen's */
+:is(#downloadsPanel, #appMenu-popup, #unified-extensions-panel) {
   --panel-border-radius: 0px !important;
 }
 
