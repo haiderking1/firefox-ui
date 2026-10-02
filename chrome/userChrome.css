@@ -38,6 +38,9 @@
   --fx-palette-text: #c5c5c5;
   --fx-palette-dim: #919191;
   --fx-palette-row-hover: #1c1c1d;
+  /* Must stay within Firefox's 32px clip margin around each half of the
+     palette, or the shadow gets cut off in straight lines */
+  --fx-palette-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* ---------- Window background ---------- */
@@ -345,7 +348,7 @@ sidebar-main,
   --urlbarView-margin-block: 0px;
   --urlbarView-joint-background-outset-inline: 0px;
   --urlbarView-joint-background-outset-block: 0px;
-  --urlbar-background-box-shadow-open: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --urlbar-background-box-shadow-open: var(--fx-palette-shadow);
   --urlbarview-border-radius: 12px;
   --toolbar-field-focus-background-color: var(--fx-palette-bg);
   --toolbar-field-text-color: var(--fx-palette-text);
@@ -356,7 +359,7 @@ sidebar-main,
     background: var(--fx-palette-bg) !important;
     border: 1px solid var(--fx-palette-border) !important;
     outline: none !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55) !important;
+    box-shadow: var(--fx-palette-shadow) !important;
   }
 
   > .urlbar-input-container {
@@ -423,7 +426,7 @@ sidebar-main,
     background: var(--fx-palette-bg) !important;
     border: 1px solid var(--fx-palette-border) !important;
     border-top: none !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55) !important;
+    box-shadow: var(--fx-palette-shadow) !important;
   }
 
   .urlbarView {
@@ -663,6 +666,24 @@ sidebar-main {
 
   .tab-label-container {
     display: none !important;
+  }
+}
+
+/* The empty tab a window starts on (zen-newtab.uc.js) isn't listed */
+.tabbrowser-tab[zen-empty-tab] {
+  display: none !important;
+}
+
+/* ...and shows an empty dark card rather than about:blank's purple-gray */
+:root:has(.tabbrowser-tab[zen-empty-tab][selected]) #tabbrowser-tabbox {
+  background: #141416 !important;
+
+  .browserContainer {
+    background: transparent !important;
+  }
+
+  .browserStack {
+    visibility: hidden;
   }
 }
 
