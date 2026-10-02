@@ -853,6 +853,11 @@ panel {
   --panel-text-color: var(--fx-text) !important;
 }
 
+/* Sharp corners on the downloads popup and the "···" app menu, like Zen's */
+:is(#downloadsPanel, #appMenu-popup) {
+  --panel-border-radius: 0px !important;
+}
+
 /* Right-click and dropdown menus */
 menupopup {
   --panel-background-color: var(--fx-bg) !important;
