@@ -757,9 +757,14 @@ sidebar-main {
 }
 
 /* Shown while hovered, or while one of its menus is open (including
-   right-click menus, see zen-compact.uc.js) */
-:root[zen-compact]:is([zen-sidebar-menu-open], :has(#sidebar-container:hover, #navigator-toolbox:hover,
-    #nav-bar [open], #zen-plus-button[open], #downloads-button[open])) {
+   right-click menus, see zen-compact.uc.js). The url bar only counts when
+   it's open in place: the floating palette (Ctrl+T, Ctrl+L) leaves the
+   sidebar hidden, like Zen, also while you hover it (it's inside the
+   toolbox, so hovering it counts as hovering the toolbox). */
+:root[zen-compact]:is([zen-sidebar-menu-open],
+  :has(#sidebar-container:hover, #nav-bar :not(#urlbar)[open], #urlbar[open][zen-palette-inplace],
+    #zen-plus-button[open], #downloads-button[open]),
+  :has(#navigator-toolbox:hover):not(:has(#urlbar[focused]:not([zen-palette-inplace]):hover))) {
   #sidebar-container {
     left: 0 !important;
     opacity: 1 !important;
