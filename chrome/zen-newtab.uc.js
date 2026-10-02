@@ -12,11 +12,24 @@
   }
 
   let pending = false;
+  let revealTimer = null;
+
+  function reveal() {
+    clearTimeout(revealTimer);
+    gURLBar.removeAttribute("zen-palette-loading");
+  }
 
   function openPalette() {
     pending = true;
     // Centered palette instead of the in-place one (see userChrome.css)
     gURLBar.setAttribute("zen-palette-centered", "");
+    // Firefox shows the input before the results, so keep it all hidden
+    // until the first results are drawn (see the controller listener
+    // below), or 300ms at most
+    gURLBar.setAttribute("zen-palette-loading", "");
+    clearTimeout(revealTimer);
+    revealTimer = setTimeout(reveal, 300);
+
     gURLBar.value = "";
     gURLBar.focus();
     // Empty query -> top sites, like Zen's empty palette
@@ -38,6 +51,15 @@
     gURLBar.handleRevert();
     gBrowser.selectedBrowser.focus();
   }
+
+  // Registered after the results view, so this runs right after the view
+  // has drawn the results. (Not onQueryFinished: with a real history the
+  // whole query takes ~180ms, which left the input invisible that long.)
+  gURLBar.controller.addListener({
+    onQueryResults: reveal,
+    onQueryFinished: reveal,
+    onQueryCancelled: reveal,
+  });
 
   // Firefox asks this where to load the picked result; "current" becomes a
   // new tab while the palette was opened by us. Switch-to-tab results and

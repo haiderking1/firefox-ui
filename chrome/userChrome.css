@@ -311,6 +311,14 @@ sidebar-main,
   --fx-palette-input-height: 60px;
 }
 
+/* Hidden while the results load, so the palette appears in one go
+   (zen-newtab.uc.js sets this). The results view is a popover in the top
+   layer, which the url bar's opacity doesn't reach, so it needs its own. */
+#urlbar[zen-palette-loading],
+#urlbar[zen-palette-loading] .urlbarView {
+  opacity: 0 !important;
+}
+
 #urlbar[zen-palette-centered]:is([focused], [popover-open]) {
   top: 31vh !important;
   /* centered with margins, not translate: the results popup is
@@ -403,6 +411,9 @@ sidebar-main,
 #urlbar {
   .urlbarView {
     --urlbarview-row-min-height: 56px;
+    /* 3px + 50px + 3px inner, plus the 3px gutter each side = 62px rows,
+       Zen's spacing (the 5-row cap on #urlbar-results relies on this) */
+    --urlbarview-row-padding-block: 3px;
     --urlbarView-row-gutter: 3px;
     --urlbarview-favicon-size: 16px;
     --urlbarView-separator-char: "—";
@@ -416,7 +427,7 @@ sidebar-main,
   }
 
   .urlbarView {
-    border-top: 1px solid var(--fx-palette-divider);
+    border-top: 1px solid var(--fx-palette-divider) !important;
   }
 
   .urlbarView-body-outer {
@@ -459,6 +470,15 @@ sidebar-main,
     margin-inline-end: 24px !important;
   }
 
+  /* Like Zen: the list never grows past 5 rows (62px each); the rest
+     scrolls, with no visible scrollbar. Also stops late-arriving rows from
+     making the palette grow at the bottom. */
+  #urlbar-results {
+    max-height: calc(5 * 62px) !important;
+    overflow-y: auto !important;
+    scrollbar-width: none !important;
+  }
+
   /* Always "Title — url" on one line */
   .urlbarView-results[wrap] > .urlbarView-row > .urlbarView-row-inner > .urlbarView-row-body > .urlbarView-row-body-top {
     display: flex !important;
@@ -480,6 +500,12 @@ sidebar-main,
 
   .urlbarView-title-separator::before {
     opacity: 1 !important;
+  }
+
+  /* Firefox hides action labels ("Visit from clipboard", "Search with ...")
+     for 100ms and then slides them in over 250ms; show them right away */
+  .urlbarView-action[slide-in] {
+    animation: none !important;
   }
 }
 
