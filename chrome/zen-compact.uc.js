@@ -87,5 +87,25 @@
     Services.obs.addObserver(onStartup, "browser-delayed-startup-finished");
   }
 
+  // A menu opened from the sidebar (right-click on a tab, the toolbar, ...)
+  // takes the hover away from it, which would slide the sidebar shut under
+  // the menu. Keep it out while such a menu is open ([zen-sidebar-menu-open]
+  // in userChrome.css).
+  const sidebarMenus = new Set();
+  const inSidebar = node =>
+    !!node?.closest?.("#sidebar-container, #navigator-toolbox");
+  window.addEventListener("popupshowing", event => {
+    const popup = event.target;
+    if (popup.localName == "menupopup" && (inSidebar(popup.triggerNode) || inSidebar(popup.anchorNode))) {
+      sidebarMenus.add(popup);
+      root.toggleAttribute("zen-sidebar-menu-open", true);
+    }
+  });
+  window.addEventListener("popuphidden", event => {
+    if (sidebarMenus.delete(event.target) && !sidebarMenus.size) {
+      root.removeAttribute("zen-sidebar-menu-open");
+    }
+  });
+
   window.zenCompact = { toggle };
 })();

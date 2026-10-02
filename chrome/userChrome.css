@@ -774,9 +774,10 @@ sidebar-main {
   }
 }
 
-/* Shown while hovered, or while one of its menus is open */
-:root[zen-compact]:has(#sidebar-container:hover, #navigator-toolbox:hover,
-    #nav-bar [open], #zen-plus-button[open], #downloads-button[open]) {
+/* Shown while hovered, or while one of its menus is open (including
+   right-click menus, see zen-compact.uc.js) */
+:root[zen-compact]:is([zen-sidebar-menu-open], :has(#sidebar-container:hover, #navigator-toolbox:hover,
+    #nav-bar [open], #zen-plus-button[open], #downloads-button[open])) {
   #sidebar-container {
     left: 0 !important;
     opacity: 1 !important;
