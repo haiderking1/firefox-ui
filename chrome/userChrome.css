@@ -688,7 +688,7 @@ sidebar-main {
   }
 }
 
-/* "Space" header + divider, then "New Tab" at the top of the tab list */
+/* "New Tab" at the top of the tab list */
 #tabbrowser-arrowscrollbox-periphery > #tabs-newtab-button {
   display: none !important;
 }
@@ -721,27 +721,8 @@ sidebar-main {
 }
 
 #tabbrowser-tabs[orient="vertical"][expanded] > #vertical-tabs-newtab-button {
-  margin-top: 67px !important;
+  margin-top: 6px !important;
   margin-bottom: -5px !important;
-  overflow: visible !important;
-
-  /* Firefox's own ::before here (a click-target extender) is more specific,
-     hence the !importants */
-  &::before {
-    content: "Space" !important;
-    position: absolute !important;
-    top: -72px !important;
-    inset-inline: 1px !important;
-    block-size: 56px !important;
-    padding-inline-start: 10px !important;
-    box-sizing: border-box !important;
-    line-height: 34px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    color: var(--fx-text-dim) !important;
-    border-bottom: 1px solid var(--fx-divider) !important;
-    pointer-events: none !important;
-  }
 }
 
 /* ---------- Compact mode (sidebar button, see zen-compact.uc.js) ---------- */
